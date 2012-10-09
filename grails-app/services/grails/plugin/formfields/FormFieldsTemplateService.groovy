@@ -22,6 +22,7 @@ import org.codehaus.groovy.grails.web.pages.discovery.GrailsConventionGroovyPage
 import org.springframework.web.context.request.RequestContextHolder
 import grails.util.*
 import static org.codehaus.groovy.grails.io.support.GrailsResourceUtils.appendPiecesForUri
+import static grails.util.Environment.DEVELOPMENT
 
 class FormFieldsTemplateService {
 
@@ -123,7 +124,8 @@ class FormFieldsTemplateService {
     }
 
     private static boolean shouldCache() {
-       if (Environment.current != DEVELOPMENT) return true
+       Environment.current != DEVELOPMENT
+       if ((Environment.current != DEVELOPMENT)) return true
        def cacheTemplatesInDevelopment = ConfigurationHolder.config?.grails?.plugin?.formfields?.cacheTemplatesInDevelopment
        return !(false == cacheTemplatesInDevelopment || 'false'.equalsIgnoreCase(cacheTemplatesInDevelopment.toString()))
     }
