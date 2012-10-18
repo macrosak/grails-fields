@@ -124,7 +124,6 @@ class FormFieldsTemplateService {
     }
 
     private static boolean shouldCache() {
-       Environment.current != DEVELOPMENT
        if ((Environment.current != DEVELOPMENT)) return true
        def cacheTemplatesInDevelopment = ConfigurationHolder.config?.grails?.plugin?.formfields?.cacheTemplatesInDevelopment
        return !(false == cacheTemplatesInDevelopment || 'false'.equalsIgnoreCase(cacheTemplatesInDevelopment.toString()))
