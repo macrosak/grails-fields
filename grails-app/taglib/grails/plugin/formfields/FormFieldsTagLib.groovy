@@ -126,6 +126,12 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 		}
 	}
 
+	def multipleFields = { attrs ->
+		attrs.properties.each { property ->
+			out << f.field(property:property, bean:attrs.bean)
+		}
+	}
+	
 	/**
 	 * @attr bean REQUIRED Name of the source bean in the GSP model.
 	 * @attr property REQUIRED The name of the property to display. This is resolved
