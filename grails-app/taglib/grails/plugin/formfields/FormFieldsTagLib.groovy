@@ -323,7 +323,7 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 			return g.field(attrs + [type: "url"])
 		} else if (model.type.isEnum()) {
 			return renderEnumInput(model,attrs)
-		} else if (model.persistentProperty?.oneToOne || model.persistentProperty?.manyToOne || model.persistentProperty?.manyToMany) {
+		} else if (model.persistentProperty?.oneToOne || model.persistentProperty?.manyToOne || model.persistentProperty?.manyToMany || (model.persistentProperty?.oneToMany && !model.persistentProperty?.bidirectional)) {
 			return renderAssociationInput(model, attrs)
 		} else if (model.persistentProperty?.oneToMany) {
 			return renderOneToManyInput(model, attrs)
@@ -411,7 +411,7 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 		attrs.id = (model.prefix ?: '') + model.property
 		attrs.from = attrs.from ?: model.persistentProperty.referencedPropertyType.list()
 		attrs.optionKey = "id" // TODO: handle alternate id names
-		if (model.persistentProperty.manyToMany) {
+		if (model.persistentProperty.manyToMany || (model.persistentProperty?.oneToMany && !model.persistentProperty?.bidirectional)) {
 			attrs.multiple = ""
 			attrs.value = model.value*.id
 			attrs.name = "${model.prefix ?: ''}${model.property}"
