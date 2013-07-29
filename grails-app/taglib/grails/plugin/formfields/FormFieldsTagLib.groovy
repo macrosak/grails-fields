@@ -254,15 +254,21 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 
 	private List<GrailsDomainClassProperty> resolvePersistentProperties(GrailsDomainClass domainClass, attrs) {
 		def properties = domainClass.persistentProperties as List
-
 		def blacklist = attrs.except?.tokenize(',')*.trim() ?: []
 		blacklist << 'dateCreated' << 'lastUpdated'
 		def scaffoldProp = getStaticPropertyValue(domainClass.clazz, 'scaffold')
 		if (scaffoldProp) {
-			blacklist.addAll(scaffoldProp.exclude)
+         if (scaffoldProp.exclude) {
+			   blacklist.addAll(scaffoldProp.exclude)
+         }
+         if (attrs.includeNonPersistentScaffolded && scaffoldProp.include) {
+            properties.addAll(domainClass.properties.findAll { prop -> 
+               prop.name in scaffoldProp.include 
+            }) 
+         }
 		}
 		properties.removeAll { it.name in blacklist }
-		properties.removeAll { !it.domainClass.constrainedProperties[it.name]?.display }
+		properties.removeAll { it.persistent && !it.domainClass.constrainedProperties[it.name]?.display }
       properties.removeAll { it.derived }
 		Collections.sort(
          properties, 
