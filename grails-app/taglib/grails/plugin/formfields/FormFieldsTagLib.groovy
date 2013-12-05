@@ -271,8 +271,8 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 		properties.removeAll { it.persistent && !it.domainClass.constrainedProperties[it.name]?.display }
       properties.removeAll { it.derived }
 		Collections.sort(
-         properties, 
-         grailsApplication.config.fields.plugin.domainClass.property.comparator?.newInstance(domainClass) ?:
+         properties,
+         (grailsApplication.config.fields.plugin.domainClass.property.comparator ?: null)?.newInstance(domainClass) ?:
             new DomainClassPropertyComparator(domainClass)
       )
 		properties
