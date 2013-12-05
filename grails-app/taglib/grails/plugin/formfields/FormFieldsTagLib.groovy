@@ -126,6 +126,12 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 		}
 	}
 
+	def multipleFields = { attrs ->
+		attrs.properties.each { property ->
+			out << f.field(property:property, bean:attrs.bean)
+		}
+	}
+	
 	/**
 	 * @attr bean REQUIRED Name of the source bean in the GSP model.
 	 * @attr property REQUIRED The name of the property to display. This is resolved
@@ -248,18 +254,27 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 
 	private List<GrailsDomainClassProperty> resolvePersistentProperties(GrailsDomainClass domainClass, attrs) {
 		def properties = domainClass.persistentProperties as List
-
 		def blacklist = attrs.except?.tokenize(',')*.trim() ?: []
 		blacklist << 'dateCreated' << 'lastUpdated'
 		def scaffoldProp = getStaticPropertyValue(domainClass.clazz, 'scaffold')
 		if (scaffoldProp) {
-			blacklist.addAll(scaffoldProp.exclude)
+         if (scaffoldProp.exclude) {
+			   blacklist.addAll(scaffoldProp.exclude)
+         }
+         if (attrs.includeNonPersistentScaffolded && scaffoldProp.include) {
+            properties.addAll(domainClass.properties.findAll { prop -> 
+               prop.name in scaffoldProp.include 
+            }) 
+         }
 		}
 		properties.removeAll { it.name in blacklist }
-		properties.removeAll { !it.domainClass.constrainedProperties[it.name]?.display }
-        properties.removeAll { it.derived }
-
-		Collections.sort(properties, new DomainClassPropertyComparator(domainClass))
+		properties.removeAll { it.persistent && !it.domainClass.constrainedProperties[it.name]?.display }
+      properties.removeAll { it.derived }
+		Collections.sort(
+         properties, 
+         grailsApplication.config.fields.plugin.domainClass.property.comparator?.newInstance(domainClass) ?:
+            new DomainClassPropertyComparator(domainClass)
+      )
 		properties
 	}
 
@@ -323,7 +338,7 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 			return g.field(attrs + [type: "url"])
 		} else if (model.type.isEnum()) {
 			return renderEnumInput(model,attrs)
-		} else if (model.persistentProperty?.oneToOne || model.persistentProperty?.manyToOne || model.persistentProperty?.manyToMany) {
+		} else if (model.persistentProperty?.oneToOne || model.persistentProperty?.manyToOne || model.persistentProperty?.manyToMany || (model.persistentProperty?.oneToMany && !model.persistentProperty?.bidirectional)) {
 			return renderAssociationInput(model, attrs)
 		} else if (model.persistentProperty?.oneToMany) {
 			return renderOneToManyInput(model, attrs)
@@ -411,7 +426,7 @@ class FormFieldsTagLib implements GrailsApplicationAware {
 		attrs.id = (model.prefix ?: '') + model.property
 		attrs.from = attrs.from ?: model.persistentProperty.referencedPropertyType.list()
 		attrs.optionKey = "id" // TODO: handle alternate id names
-		if (model.persistentProperty.manyToMany) {
+		if (model.persistentProperty.manyToMany || (model.persistentProperty?.oneToMany && !model.persistentProperty?.bidirectional)) {
 			attrs.multiple = ""
 			attrs.value = model.value*.id
 			attrs.name = "${model.prefix ?: ''}${model.property}"

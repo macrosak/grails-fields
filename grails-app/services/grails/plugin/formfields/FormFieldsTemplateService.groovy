@@ -16,12 +16,13 @@
 
 package grails.plugin.formfields
 
+import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import org.codehaus.groovy.grails.plugins.GrailsPluginManager
 import org.codehaus.groovy.grails.web.pages.discovery.GrailsConventionGroovyPageLocator
 import org.springframework.web.context.request.RequestContextHolder
 import grails.util.*
-import static grails.util.Environment.DEVELOPMENT
 import static org.codehaus.groovy.grails.io.support.GrailsResourceUtils.appendPiecesForUri
+import static grails.util.Environment.DEVELOPMENT
 
 class FormFieldsTemplateService {
 
@@ -29,6 +30,7 @@ class FormFieldsTemplateService {
 
     GrailsConventionGroovyPageLocator groovyPageLocator
     GrailsPluginManager pluginManager
+    def grailsApplication
 
     Map findTemplate(BeanPropertyAccessor propertyAccessor, String templateName) {
         findTemplateCached(propertyAccessor, controllerName, actionName, templateName)
@@ -122,7 +124,9 @@ class FormFieldsTemplateService {
     }
 
     private static boolean shouldCache() {
-        Environment.current != DEVELOPMENT
+       if ((Environment.current != DEVELOPMENT)) return true
+       def cacheTemplatesInDevelopment = ConfigurationHolder.config?.grails?.plugin?.formfields?.cacheTemplatesInDevelopment
+       return !(false == cacheTemplatesInDevelopment || 'false'.equalsIgnoreCase(cacheTemplatesInDevelopment.toString()))
     }
 
 }
