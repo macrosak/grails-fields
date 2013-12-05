@@ -8,9 +8,9 @@ The plugin resolves the GSP template used for each property according to convent
 # @grails-app/views/*controllerName*/@
 # @grails-app/views/\_fields/*class*/*propertyName*/@
 # @grails-app/views/\_fields/*superclass*/*propertyName*/@
-# @grails-app/views/\_fields/*associationType*/@
 # @grails-app/views/\_fields/*propertyType*/@
 # @grails-app/views/\_fields/*propertySuperclass*/@
+# @grails-app/views/\_fields/*associationType*/@
 # @grails-app/views/\_fields/default/@
 
 The variables referenced in these paths are:
