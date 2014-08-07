@@ -17,6 +17,9 @@
 package grails.plugin.formfields
 
 import groovy.transform.PackageScope
+import org.hibernate.Hibernate
+import org.hibernate.proxy.HibernateProxy
+
 import java.lang.reflect.ParameterizedType
 import java.util.regex.Pattern
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
@@ -35,14 +38,23 @@ class BeanPropertyAccessorFactory implements GrailsApplicationAware {
 		if (bean == null) {
 			new PropertyPathAccessor(propertyPath)
 		} else {
-			def params = [rootBean: bean, rootBeanType: bean.getClass(), pathFromRoot: propertyPath]
-			params.rootBeanClass = resolveDomainClass(bean.getClass())
+         bean = unwrapBean(bean)
+         def params = [rootBean: bean, rootBeanType: bean.getClass(), pathFromRoot: propertyPath]
+         params.rootBeanClass = resolveDomainClass(bean.getClass())
 
-			resolvePropertyFromPath(bean, propertyPath, params)
+         resolvePropertyFromPath(bean, propertyPath, params)
 
 			new BeanPropertyAccessorImpl(params)
 		}
 	}
+
+   private unwrapBean(bean) {
+      if (bean instanceof HibernateProxy) {
+         Hibernate.initialize(bean);
+         bean = ((HibernateProxy) bean).getHibernateLazyInitializer().getImplementation();
+      }
+      return bean
+   }
 
 	private GrailsDomainClass resolveDomainClass(Class beanClass) {
 		grailsApplication.getDomainClass(beanClass.name)
